@@ -73,36 +73,89 @@ namespace HotelManagementSystem
 
 
         private void btnLogin_Click(object sender, EventArgs e)
+{
+    string username = txtUsername.Text;
+    string password = txtPassword.Text;
+
+    using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+    {
+        connection.Open();
+
+        using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'", connection))
         {
-            string username = txtUsername.Text;
-            string password = txtPassword.Text;
-
-            using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
             {
-                connection.Open();
-
-                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'", connection))
+                if (reader.Read())
                 {
-                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
+                    string role = reader["role"].ToString();
+                    if (role == "Admin")
+                    {OpenManagerForm(role);}
+                    
+                    if (role == "Guest")
                     {
-                        if (reader.Read())
+                        // Проверяем наличие гостя в таблице guests
+                        if (CheckGuestExistence(username))
                         {
-                            string role = reader["role"].ToString();
-                            MessageBox.Show($"Добро пожаловать, {username}! Роль: {role}");
-                            OpenManagerForm(role);
-
-                            // Здесь можно добавить логику для перехода к различным формам в зависимости от роли пользователя
-                            // Например: OpenAdminForm(), OpenWorkerForm(), OpenGuestForm()
+                            // Гость найден, открываем форму с номером комнаты
+                            OpenGuestRoomForm(username);
                         }
                         else
                         {
-                            MessageBox.Show("Неверные учетные данные. Пожалуйста, повторите попытку или зарегистрируйтесь.");
-                            OpenRegistrationForm(); // Добавленный код для открытия формы регистрации
-
+                            // Гостя нет, открываем форму с сообщением о отсутствии номера
+                            OpenNoGuestRoomForm();
                         }
                     }
+                    else
+                    {
+                        MessageBox.Show($"Добро пожаловать, {username}! Роль: {role}");
+                        // Здесь можно добавить логику для перехода к различным формам в зависимости от роли пользователя
+                        // Например: OpenAdminForm(), OpenWorkerForm()
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Неверные учетные данные. Пожалуйста, повторите попытку.");
                 }
             }
         }
+    }
+}
+
+private bool CheckGuestExistence(string guestName)
+{
+    using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+    {
+        connection.Open();
+
+        using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM guests WHERE guest_name = '{guestName}'", connection))
+        {
+            using (NpgsqlDataReader reader = cmd.ExecuteReader())
+            {
+                return reader.Read();
+            }
+        }
+    }
+}
+
+private void OpenGuestRoomForm(string guestName)
+{
+    // Открываем форму с номером комнаты гостя
+    GuestRoomForm guestRoomForm = new GuestRoomForm(guestName);
+    guestRoomForm.Show();
+
+    // Закрываем текущую форму входа
+    this.Hide();
+}
+
+private void OpenNoGuestRoomForm()
+{
+    // Открываем форму с сообщением о отсутствии номера комнаты
+    NoGuestRoomForm noGuestRoomForm = new NoGuestRoomForm();
+    noGuestRoomForm.Show();
+
+    // Закрываем текущую форму входа
+    this.Hide();
+}
+
     }
 }
