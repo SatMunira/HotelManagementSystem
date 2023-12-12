@@ -32,6 +32,21 @@ namespace HotelManagementSystem
             btnCheckIn.Text = "Заселить гостя";
             btnCheckIn.Click += new EventHandler(btnCheckIn_Click);
 
+            Button btnEditGuest = new Button();
+            btnEditGuest.Location = new System.Drawing.Point(180, 220);
+            btnEditGuest.Size = new System.Drawing.Size(150, 30);
+            btnEditGuest.Text = "Изменить данные гостя";
+            btnEditGuest.Click += new EventHandler(btnEditGuest_Click);
+
+            Button btnDeleteGuest = new Button();
+            btnDeleteGuest.Location = new System.Drawing.Point(340, 220);
+            btnDeleteGuest.Size = new System.Drawing.Size(150, 30);
+            btnDeleteGuest.Text = "Удалить гостя";
+            btnDeleteGuest.Click += new EventHandler(btnDeleteGuest_Click);
+
+            this.Controls.Add(btnEditGuest);
+            this.Controls.Add(btnDeleteGuest);
+
             this.Controls.Add(dgvGuests);
             this.Controls.Add(btnCheckIn);
         }
@@ -65,5 +80,40 @@ namespace HotelManagementSystem
             // После заселения обновляем список гостей
             LoadGuests();
         }
+
+        private void btnEditGuest_Click(object sender, EventArgs e)
+        {
+            if (dgvGuests.SelectedRows.Count > 0)
+            {
+                int guestId = Convert.ToInt32(dgvGuests.SelectedRows[0].Cells["id"].Value);
+                EditGuestForm editGuestForm = new EditGuestForm(guestId);
+                editGuestForm.ShowDialog();
+
+                // После редактирования обновляем список гостей
+                LoadGuests();
+            }
+            else
+            {
+                MessageBox.Show("Выберите гостя для редактирования.");
+            }
+        }
+
+        private void btnDeleteGuest_Click(object sender, EventArgs e)
+        {
+            if (dgvGuests.SelectedRows.Count > 0)
+            {
+                int guestId = Convert.ToInt32(dgvGuests.SelectedRows[0].Cells["id"].Value);
+                DeleteGuestConfirmationForm deleteConfirmationForm = new DeleteGuestConfirmationForm(guestId);
+                deleteConfirmationForm.ShowDialog();
+
+                // После удаления обновляем список гостей
+                LoadGuests();
+            }
+            else
+            {
+                MessageBox.Show("Выберите гостя для удаления.");
+            }
+        }
+
     }
 }
