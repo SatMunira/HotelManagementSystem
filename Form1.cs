@@ -45,7 +45,7 @@ namespace HotelManagementSystem
             this.Controls.Add(txtUsername);
             this.Controls.Add(txtPassword);
             this.Controls.Add(btnLogin);
-            this.Controls.Add(linkRegister);
+            this.Controls.Add(linkRegister); 
         }
         private void OpenRegistrationForm()
         {
