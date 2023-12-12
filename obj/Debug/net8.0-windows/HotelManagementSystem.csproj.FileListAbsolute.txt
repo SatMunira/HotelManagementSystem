@@ -17,3 +17,4 @@ C:\Users\Asus\HotelManagementSystem\bin\Debug\net8.0-windows\Microsoft.Extension
 C:\Users\Asus\HotelManagementSystem\bin\Debug\net8.0-windows\Npgsql.dll
 C:\Users\Asus\HotelManagementSystem\obj\Debug\net8.0-windows\HotelManagementSystem.csproj.AssemblyReference.cache
 C:\Users\Asus\HotelManagementSystem\obj\Debug\net8.0-windows\HotelManagementSystem.csproj.CopyComplete
+C:\Users\Asus\HotelManagementSystem\obj\Debug\net8.0-windows\HotelManagementSystem.sourcelink.json

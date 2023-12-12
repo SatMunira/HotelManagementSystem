@@ -45,7 +45,7 @@ namespace HotelManagementSystem
             this.Controls.Add(txtUsername);
             this.Controls.Add(txtPassword);
             this.Controls.Add(btnLogin);
-            this.Controls.Add(linkRegister); 
+            this.Controls.Add(linkRegister);
         }
         private void OpenRegistrationForm()
         {
@@ -57,8 +57,20 @@ namespace HotelManagementSystem
         {
             OpenRegistrationForm();
         }
+        private void OpenManagerForm(string role)
+        {
+            if (role == "Admin")
+            {
+                ManagerForm managerForm = new ManagerForm();
+                managerForm.ShowDialog();
+            }
+            else
+            {
+                // Здесь вы можете добавить логику для открытия других форм в зависимости от роли
+                MessageBox.Show("Доступ только для менеджера.");
+            }
+        }
 
-        
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
@@ -77,6 +89,7 @@ namespace HotelManagementSystem
                         {
                             string role = reader["role"].ToString();
                             MessageBox.Show($"Добро пожаловать, {username}! Роль: {role}");
+                            OpenManagerForm(role);
 
                             // Здесь можно добавить логику для перехода к различным формам в зависимости от роли пользователя
                             // Например: OpenAdminForm(), OpenWorkerForm(), OpenGuestForm()
