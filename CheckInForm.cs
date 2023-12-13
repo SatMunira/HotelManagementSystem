@@ -79,7 +79,7 @@ namespace HotelManagementSystem
                 {
                     connection.Open();
 
-                    using (NpgsqlCommand cmd = new NpgsqlCommand($"INSERT INTO guests (guest_name, room_number, status) VALUES ('{guestName}', {roomNumber}, 'занят')", connection))
+                    using (NpgsqlCommand cmd = new NpgsqlCommand($"INSERT INTO guests (guest_name, room_number, status, wants_services) VALUES ('{guestName}', {roomNumber}, 'занят', false)", connection))
                     {
                         int rowsAffected = cmd.ExecuteNonQuery();
 

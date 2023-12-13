@@ -9,27 +9,39 @@ namespace HotelManagementSystem
         private const string ConnectionString = "Host=127.0.0.1;Username=postgres;Password=postgres;Database=HotelManagementDB";
 
         private Label lblRoomInfo;
+        private Button btnWantsServices;
+
+        private string guestName;
 
         public GuestRoomForm(string guestName)
         {
+            this.guestName = guestName;
             InitializeComponent();
-            InitializeComponents(guestName);
+            InitializeComponents();
         }
 
-        private void InitializeComponent()
-        {
-            // Этот метод может быть пустым, если вы не используете дизайнер формы
-        }
-
-        private void InitializeComponents(string guestName)
+        private void InitializeComponents()
         {
             lblRoomInfo = new Label();
+            btnWantsServices = new Button();
 
             lblRoomInfo.Location = new System.Drawing.Point(50, 50);
             lblRoomInfo.Size = new System.Drawing.Size(300, 50);
-            lblRoomInfo.Text = GetGuestRoomInfo(guestName);
+
+            btnWantsServices.Location = new System.Drawing.Point(50, 120);
+            btnWantsServices.Size = new System.Drawing.Size(150, 30);
+            btnWantsServices.Text = "Хочу сервис";
+            btnWantsServices.Click += new EventHandler(btnWantsServices_Click);
 
             this.Controls.Add(lblRoomInfo);
+            this.Controls.Add(btnWantsServices);
+
+            UpdateRoomInfo();
+        }
+
+        private void UpdateRoomInfo()
+        {
+            lblRoomInfo.Text = GetGuestRoomInfo(guestName);
         }
 
         private string GetGuestRoomInfo(string guestName)
@@ -38,18 +50,51 @@ namespace HotelManagementSystem
             {
                 connection.Open();
 
-                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT room_number FROM guests WHERE guest_name = '{guestName}'", connection))
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT room_number, wants_services FROM guests WHERE guest_name = '{guestName}'", connection))
                 {
-                    object result = cmd.ExecuteScalar();
-
-                    if (result != null)
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        int roomNumber = Convert.ToInt32(result);
-                        return $"Добро пожаловать, {guestName}! Ваш номер комнаты: {roomNumber}";
+                        if (reader.Read())
+                        {
+                            int roomNumber = reader.GetInt32(0);
+                            bool wantsServices = reader.GetBoolean(1);
+
+                            string servicesInfo = wantsServices ? "Хочет сервис" : "Не хочет сервис";
+
+                            return $"Добро пожаловать, {guestName}! Ваш номер комнаты: {roomNumber}. {servicesInfo}";
+                        }
+                        else
+                        {
+                            return $"Ошибка: Гость {guestName} не найден в базе данных.";
+                        }
+                    }
+                }
+            }
+        }
+        private void InitializeComponent()
+        {
+            // Этот метод может быть пустым, если вы не используете дизайнер формы
+        }
+
+        private void btnWantsServices_Click(object sender, EventArgs e)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"UPDATE guests SET wants_services = true, worker_name = NULL WHERE guest_name = '{guestName}'", connection))
+                {
+                    int rowsAffected = cmd.ExecuteNonQuery();
+
+                    if (rowsAffected > 0)
+                    {
+                        MessageBox.Show("Ваш запрос на получение сервиса принят.");
+                        // Обновляем информацию о номере комнаты
+                        UpdateRoomInfo();
                     }
                     else
                     {
-                        return $"Ошибка: Гость {guestName} не найден в базе данных.";
+                        MessageBox.Show("Произошла ошибка при обновлении запроса на сервис. Пожалуйста, повторите попытку.");
                     }
                 }
             }

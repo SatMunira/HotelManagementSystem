@@ -73,89 +73,115 @@ namespace HotelManagementSystem
 
 
         private void btnLogin_Click(object sender, EventArgs e)
-{
-    string username = txtUsername.Text;
-    string password = txtPassword.Text;
-
-    using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
-    {
-        connection.Open();
-
-        using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'", connection))
         {
-            using (NpgsqlDataReader reader = cmd.ExecuteReader())
+            string username = txtUsername.Text;
+            string password = txtPassword.Text;
+
+            using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
             {
-                if (reader.Read())
+                connection.Open();
+
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM users WHERE username = '{username}' AND password = '{password}'", connection))
                 {
-                    string role = reader["role"].ToString();
-                    if (role == "Admin")
-                    {OpenManagerForm(role);}
-                    
-                    if (role == "Guest")
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        // Проверяем наличие гостя в таблице guests
-                        if (CheckGuestExistence(username))
+                        if (reader.Read())
                         {
-                            // Гость найден, открываем форму с номером комнаты
-                            OpenGuestRoomForm(username);
+                            string role = reader["role"].ToString();
+                            if (role == "Admin")
+                            { OpenManagerForm(role); }
+
+                            if (role == "Guest")
+                            {
+                                // Проверяем наличие гостя в таблице guests
+                                if (CheckGuestExistence(username))
+                                {
+                                    // Гость найден, открываем форму с номером комнаты
+                                    OpenGuestRoomForm(username);
+                                }
+                                else if (CheckWorkerExistence(username))
+                                {
+                                    OpenEmployeeForm(username);
+                                }
+
+                                else
+                                {
+                                    // Гостя нет, открываем форму с сообщением о отсутствии номера
+                                    OpenNoGuestRoomForm();
+                                }
+                            }
+
+                            else
+                            {
+                                MessageBox.Show($"Добро пожаловать, {username}! Роль: {role}");
+                                // Здесь можно добавить логику для перехода к различным формам в зависимости от роли пользователя
+                                // Например: OpenAdminForm(), OpenWorkerForm()
+                            }
                         }
                         else
                         {
-                            // Гостя нет, открываем форму с сообщением о отсутствии номера
-                            OpenNoGuestRoomForm();
+                            MessageBox.Show("Неверные учетные данные. Пожалуйста, повторите попытку.");
                         }
                     }
-                    else
+                }
+            }
+        }
+
+        private bool CheckWorkerExistence(string username)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT COUNT(*) FROM workers WHERE worker_name = '{username}'", connection))
+                {
+                    int count = Convert.ToInt32(cmd.ExecuteScalar());
+
+                    return count > 0;
+                }
+            }
+        }
+
+        private bool CheckGuestExistence(string guestName)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
+            {
+                connection.Open();
+
+                using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM guests WHERE guest_name = '{guestName}'", connection))
+                {
+                    using (NpgsqlDataReader reader = cmd.ExecuteReader())
                     {
-                        MessageBox.Show($"Добро пожаловать, {username}! Роль: {role}");
-                        // Здесь можно добавить логику для перехода к различным формам в зависимости от роли пользователя
-                        // Например: OpenAdminForm(), OpenWorkerForm()
+                        return reader.Read();
                     }
                 }
-                else
-                {
-                    MessageBox.Show("Неверные учетные данные. Пожалуйста, повторите попытку.");
-                }
             }
         }
-    }
-}
 
-private bool CheckGuestExistence(string guestName)
-{
-    using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
-    {
-        connection.Open();
-
-        using (NpgsqlCommand cmd = new NpgsqlCommand($"SELECT * FROM guests WHERE guest_name = '{guestName}'", connection))
+        private void OpenGuestRoomForm(string guestName)
         {
-            using (NpgsqlDataReader reader = cmd.ExecuteReader())
-            {
-                return reader.Read();
-            }
+            // Открываем форму с номером комнаты гостя
+            GuestRoomForm guestRoomForm = new GuestRoomForm(guestName);
+            guestRoomForm.Show();
+
+
         }
-    }
-}
 
-private void OpenGuestRoomForm(string guestName)
-{
-    // Открываем форму с номером комнаты гостя
-    GuestRoomForm guestRoomForm = new GuestRoomForm(guestName);
-    guestRoomForm.Show();
+        private void OpenEmployeeForm(string username)
+        {
+            // Открываем форму для работников
+            EmployeeForm employeeForm = new EmployeeForm(username);
+            employeeForm.Show();
+        }
 
-    // Закрываем текущую форму входа
-    this.Hide();
-}
+        private void OpenNoGuestRoomForm()
+        {
+            // Открываем форму с сообщением о отсутствии номера комнаты
+            NoGuestRoomForm noGuestRoomForm = new NoGuestRoomForm();
+            noGuestRoomForm.Show();
 
-private void OpenNoGuestRoomForm()
-{
-    // Открываем форму с сообщением о отсутствии номера комнаты
-    NoGuestRoomForm noGuestRoomForm = new NoGuestRoomForm();
-    noGuestRoomForm.Show();
 
-    // Закрываем текущую форму входа
-    this.Hide();
-}
+        }
 
     }
 }
